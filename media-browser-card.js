@@ -7,7 +7,7 @@ class MediaBrowserCard extends HTMLElement {
 
   setConfig(config) {
     this._config = config || {};
-    this._title = this._config.title || "Media Browser";
+    this._title = this._config.title ?? "";
     this._entities = this._config.entities || [this._config.entity || "browser"];
     this._entity = this._entities[0];
     this._renderBase();
@@ -58,8 +58,9 @@ class MediaBrowserCard extends HTMLElement {
         margin: 0 8px;
       }
     `;
+    const headerAttr = this._title ? ` header="${this._title}"` : "";
     this.shadowRoot.innerHTML = `
-      <ha-card header="${this._title}">
+      <ha-card${headerAttr}>
         <div class="controls">
           <div class="back" hidden id="back">⬅ Back</div>
           <select id="entity-select" class="entity-select"></select>
