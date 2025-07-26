@@ -38,4 +38,5 @@ items will trigger the `media_player.play_media` service when selected. From
 version 1.1 on the card correctly includes `media_content_type` when opening
 folders so navigation into subdirectories works reliably. The surrounding
 `ha-card` respects your active theme, so it fits nicely when using the Mushroom
-theme.
+theme. The card will no longer refresh automatically on state updates. Use the
+new refresh button in the card header to manually reload the current folder.
