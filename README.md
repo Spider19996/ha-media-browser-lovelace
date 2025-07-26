@@ -26,8 +26,7 @@ Once the resource is added you can add the card directly through the
 "Add Card" dialog. Search for **Media Browser Card** and choose it to open
 the configuration dialog. From there you can set the title and the media
 player entities without editing YAML. If the card does not show up in the
-list, reload the page so the resource is loaded. Leave the title empty to
-hide the header completely.
+list, reload the page so the resource is loaded.
 
 ## Usage
 
