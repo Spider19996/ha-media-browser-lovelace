@@ -32,4 +32,4 @@ entity: browser
 
 `entity` is optional and defaults to `browser`.
 
-The card renders the same folders and media items that you normally see in the Media panel. Because the card uses the built-in Media Browser components, all navigation and playback features work as expected. The surrounding `ha-card` respects your active theme, so it fits nicely when using the Mushroom theme.
+The card loads media items from your configured media sources and displays them inside an `ha-card`. Folders can be opened by clicking on them and playable items will trigger the `media_player.play_media` service when selected. The surrounding `ha-card` respects your active theme, so it fits nicely when using the Mushroom theme.
