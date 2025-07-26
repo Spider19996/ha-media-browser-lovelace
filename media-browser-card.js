@@ -8,7 +8,8 @@ class MediaBrowserCard extends HTMLElement {
   setConfig(config) {
     this._config = config || {};
     this._title = this._config.title || "Media Browser";
-    this._entity = this._config.entity || "browser";
+    this._entities = this._config.entities || [this._config.entity || "browser"];
+    this._entity = this._entities[0];
     this._renderBase();
   }
 
@@ -53,11 +54,15 @@ class MediaBrowserCard extends HTMLElement {
         padding: 8px;
         cursor: pointer;
       }
+      .entity-select {
+        margin: 0 8px;
+      }
     `;
     this.shadowRoot.innerHTML = `
       <ha-card header="${this._title}">
         <div class="controls">
           <div class="back" hidden id="back">⬅ Back</div>
+          <select id="entity-select" class="entity-select"></select>
           <div class="refresh" id="refresh">⟳ Refresh</div>
         </div>
         <div id="list"></div>
@@ -67,6 +72,7 @@ class MediaBrowserCard extends HTMLElement {
     this._list = this.shadowRoot.getElementById("list");
     this._back = this.shadowRoot.getElementById("back");
     this._refresh = this.shadowRoot.getElementById("refresh");
+    this._select = this.shadowRoot.getElementById("entity-select");
     this._back.addEventListener("click", () => this._navigateBack());
     this._refresh.addEventListener("click", () =>
       this._fetch(
@@ -74,6 +80,21 @@ class MediaBrowserCard extends HTMLElement {
         this._current?.media_content_type
       )
     );
+    if (this._select) {
+      this._select.innerHTML = "";
+      for (const ent of this._entities) {
+        const opt = document.createElement("option");
+        opt.value = ent;
+        opt.textContent = ent;
+        this._select.appendChild(opt);
+      }
+      this._select.value = this._entity;
+      this._select.addEventListener("change", () => {
+        this._entity = this._select.value;
+        this._path = [];
+        this._fetch();
+      });
+    }
   }
 
   async _fetch(mediaId, mediaType) {
@@ -138,7 +159,7 @@ class MediaBrowserCard extends HTMLElement {
   }
 
   static getStubConfig() {
-    return { title: "Media", entity: "browser" };
+    return { title: "Media", entities: ["browser"] };
   }
 }
 customElements.define("media-browser-card", MediaBrowserCard);
@@ -147,7 +168,8 @@ class MediaBrowserCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
     if (this._title) this._title.value = this._config.title || "";
-    if (this._entity) this._entity.value = this._config.entity || "browser";
+    if (this._entitiesInput)
+      this._entitiesInput.value = (this._config.entities || ["browser"]).join(", ");
   }
 
   connectedCallback() {
@@ -167,25 +189,28 @@ class MediaBrowserCardEditor extends HTMLElement {
           <input id="title" type="text" />
         </label>
         <label>
-          Entity
-          <input id="entity" type="text" placeholder="browser" />
+          Entities (comma separated)
+          <input id="entities" type="text" placeholder="browser" />
         </label>
       </div>
     `;
     this._title = this.querySelector("#title");
-    this._entity = this.querySelector("#entity");
+    this._entitiesInput = this.querySelector("#entities");
     this._title.addEventListener("input", () => this._updateConfig());
-    this._entity.addEventListener("input", () => this._updateConfig());
+    this._entitiesInput.addEventListener("input", () => this._updateConfig());
     if (this._config) {
       this._title.value = this._config.title || "";
-      this._entity.value = this._config.entity || "browser";
+      this._entitiesInput.value = (this._config.entities || ["browser"]).join(", ");
     }
   }
 
   _updateConfig() {
     if (!this._config) this._config = {};
     this._config.title = this._title.value;
-    this._config.entity = this._entity.value;
+    this._config.entities = this._entitiesInput.value
+      .split(",")
+      .map((e) => e.trim())
+      .filter((e) => e);
     this.dispatchEvent(
       new CustomEvent("config-changed", { detail: { config: this._config } })
     );
