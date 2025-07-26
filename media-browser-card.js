@@ -168,8 +168,12 @@ class MediaBrowserCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
     if (this._title) this._title.value = this._config.title || "";
-    if (this._entitiesInput)
-      this._entitiesInput.value = (this._config.entities || ["browser"]).join(", ");
+    if (this._container) this._renderEntitySelectors();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    if (this.isConnected) this._renderEntitySelectors();
   }
 
   connectedCallback() {
@@ -182,35 +186,75 @@ class MediaBrowserCardEditor extends HTMLElement {
           display: block;
           margin-bottom: 8px;
         }
+        .entity-select {
+          display: block;
+          margin-bottom: 8px;
+        }
       </style>
       <div class="card-config">
         <label>
           Title
           <input id="title" type="text" />
         </label>
-        <label>
-          Entities (comma separated)
-          <input id="entities" type="text" placeholder="browser" />
-        </label>
+        <div id="entities-container"></div>
       </div>
     `;
     this._title = this.querySelector("#title");
-    this._entitiesInput = this.querySelector("#entities");
+    this._container = this.querySelector("#entities-container");
     this._title.addEventListener("input", () => this._updateConfig());
-    this._entitiesInput.addEventListener("input", () => this._updateConfig());
     if (this._config) {
       this._title.value = this._config.title || "";
-      this._entitiesInput.value = (this._config.entities || ["browser"]).join(", ");
+    }
+    this._renderEntitySelectors();
+  }
+
+  _availableEntities() {
+    if (!this._hass) return ["browser"];
+    const ents = Object.keys(this._hass.states).filter((e) =>
+      e.startsWith("media_player.")
+    );
+    return ["browser", ...ents];
+  }
+
+  _addEntitySelect(value = "") {
+    if (!this._container) return;
+    const select = document.createElement("select");
+    select.className = "entity-select";
+    for (const ent of this._availableEntities()) {
+      const opt = document.createElement("option");
+      opt.value = ent;
+      opt.textContent = ent;
+      select.appendChild(opt);
+    }
+    select.value = value;
+    select.addEventListener("change", () => {
+      this._updateConfig();
+      if (select === this._container.lastElementChild && select.value) {
+        this._addEntitySelect();
+      }
+    });
+    this._container.appendChild(select);
+  }
+
+  _renderEntitySelectors() {
+    if (!this._container) return;
+    this._container.innerHTML = "";
+    const entities = this._config?.entities || ["browser"];
+    for (const ent of entities) {
+      this._addEntitySelect(ent);
+    }
+    if (!entities.length || entities[entities.length - 1]) {
+      this._addEntitySelect();
     }
   }
 
   _updateConfig() {
     if (!this._config) this._config = {};
     this._config.title = this._title.value;
-    this._config.entities = this._entitiesInput.value
-      .split(",")
-      .map((e) => e.trim())
+    const ents = Array.from(this._container.querySelectorAll("select"))
+      .map((s) => s.value.trim())
       .filter((e) => e);
+    this._config.entities = ents.length ? ents : ["browser"];
     this.dispatchEvent(
       new CustomEvent("config-changed", { detail: { config: this._config } })
     );
