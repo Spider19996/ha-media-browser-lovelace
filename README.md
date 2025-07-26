@@ -4,6 +4,13 @@ This repository contains a simple custom card for Home Assistant. The card displ
 
 ## Installation
 
+### HACS (recommended)
+
+1. Add this repository as a custom repository in HACS (type: Lovelace).
+2. Install **Media Browser Card** from the HACS store.
+
+### Manual
+
 1. Copy `media-browser-card.js` to your `config/www` folder in Home Assistant.
 2. Add the resource in your dashboard configuration:
 
