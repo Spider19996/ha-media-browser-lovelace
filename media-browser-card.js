@@ -14,7 +14,7 @@ class MediaBrowserCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
-    if (this.isConnected) {
+    if (this.isConnected && !this._current) {
       this._fetch();
     }
   }
@@ -32,6 +32,10 @@ class MediaBrowserCard extends HTMLElement {
       ha-card {
         padding: 0;
       }
+      .controls {
+        display: flex;
+        align-items: center;
+      }
       .item {
         padding: 8px;
         cursor: pointer;
@@ -44,17 +48,32 @@ class MediaBrowserCard extends HTMLElement {
         cursor: pointer;
         font-weight: bold;
       }
+      .refresh {
+        margin-left: auto;
+        padding: 8px;
+        cursor: pointer;
+      }
     `;
     this.shadowRoot.innerHTML = `
       <ha-card header="${this._title}">
-        <div class="back" hidden id="back">⬅ Back</div>
+        <div class="controls">
+          <div class="back" hidden id="back">⬅ Back</div>
+          <div class="refresh" id="refresh">⟳ Refresh</div>
+        </div>
         <div id="list"></div>
       </ha-card>
     `;
     this.shadowRoot.appendChild(style);
     this._list = this.shadowRoot.getElementById("list");
     this._back = this.shadowRoot.getElementById("back");
+    this._refresh = this.shadowRoot.getElementById("refresh");
     this._back.addEventListener("click", () => this._navigateBack());
+    this._refresh.addEventListener("click", () =>
+      this._fetch(
+        this._current?.media_content_id,
+        this._current?.media_content_type
+      )
+    );
   }
 
   async _fetch(mediaId, mediaType) {
