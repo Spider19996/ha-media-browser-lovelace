@@ -113,5 +113,70 @@ class MediaBrowserCard extends HTMLElement {
   getCardSize() {
     return 8;
   }
+
+  static getConfigElement() {
+    return document.createElement("media-browser-card-editor");
+  }
+
+  static getStubConfig() {
+    return { title: "Media", entity: "browser" };
+  }
 }
 customElements.define("media-browser-card", MediaBrowserCard);
+
+class MediaBrowserCardEditor extends HTMLElement {
+  setConfig(config) {
+    this._config = { ...config };
+    if (this._title) this._title.value = this._config.title || "";
+    if (this._entity) this._entity.value = this._config.entity || "browser";
+  }
+
+  connectedCallback() {
+    this.innerHTML = `
+      <style>
+        .card-config {
+          padding: 8px;
+        }
+        .card-config label {
+          display: block;
+          margin-bottom: 8px;
+        }
+      </style>
+      <div class="card-config">
+        <label>
+          Title
+          <input id="title" type="text" />
+        </label>
+        <label>
+          Entity
+          <input id="entity" type="text" placeholder="browser" />
+        </label>
+      </div>
+    `;
+    this._title = this.querySelector("#title");
+    this._entity = this.querySelector("#entity");
+    this._title.addEventListener("input", () => this._updateConfig());
+    this._entity.addEventListener("input", () => this._updateConfig());
+    if (this._config) {
+      this._title.value = this._config.title || "";
+      this._entity.value = this._config.entity || "browser";
+    }
+  }
+
+  _updateConfig() {
+    if (!this._config) this._config = {};
+    this._config.title = this._title.value;
+    this._config.entity = this._entity.value;
+    this.dispatchEvent(
+      new CustomEvent("config-changed", { detail: { config: this._config } })
+    );
+  }
+}
+customElements.define("media-browser-card-editor", MediaBrowserCardEditor);
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "media-browser-card",
+  name: "Media Browser Card",
+  description: "Browse and play media from your library.",
+});
