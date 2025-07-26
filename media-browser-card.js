@@ -57,7 +57,7 @@ class MediaBrowserCard extends HTMLElement {
     this._back.addEventListener("click", () => this._navigateBack());
   }
 
-  async _fetch(mediaId) {
+  async _fetch(mediaId, mediaType) {
     if (!this._hass) return;
     const data = await this._hass.callWS({
       type:
@@ -66,6 +66,7 @@ class MediaBrowserCard extends HTMLElement {
           : "media_player/browse_media",
       entity_id: this._entity === "browser" ? undefined : this._entity,
       media_content_id: mediaId,
+      media_content_type: mediaType,
     });
     this._current = data;
     this._renderItems(data.children || []);
@@ -85,7 +86,7 @@ class MediaBrowserCard extends HTMLElement {
       div.addEventListener("click", () => {
         if (item.can_expand) {
           this._path.push(this._current);
-          this._fetch(item.media_content_id);
+          this._fetch(item.media_content_id, item.media_content_type);
         } else if (item.can_play && this._entity !== "browser") {
           this._hass.callService("media_player", "play_media", {
             entity_id: this._entity,
